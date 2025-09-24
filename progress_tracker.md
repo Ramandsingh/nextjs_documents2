@@ -23,6 +23,7 @@ Build a Vercel-hosted web application that allows users to upload multiple recei
 - [x] **Show a basic run:** Initialize Next.js project with Vercel AI SDK and create a simple chatbot.
     - [x] `app/api/chat/route.ts` created for Gemini API integration.
     - [x] `app/page.tsx` initially set up with a basic chatbot UI (later replaced).
+    - [x] `app/api/chat/route.ts` deleted as it was obsolete and causing Vercel build error.
 - [x] **File Upload:** Create a frontend component for multi-file drag-and-drop.
     - [x] `components/file-upload.tsx` created.
     - [x] `react-dropzone` installed.
