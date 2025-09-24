@@ -1,103 +1,166 @@
-import Image from "next/image";
+'use client'; // Re-added 'use client' directive
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { FileUpload } from '@/components/file-upload';
+import { processReceipts } from '@/app/actions';
+import { ReceiptTable } from '@/components/receipt-table';
+import { isAuthenticated, logout } from '@/lib/auth';
+import { useRouter } from 'next/navigation'; // Import useRouter
+
+interface ReceiptData {
+  store_name: string;
+  country: string;
+  receipt_type: string;
+  address: string;
+  datetime: string;
+  currency: string;
+  sub_total_amount: number | 'unknown';
+  total_price: number;
+  total_discount: number;
+  all_items_price_with_tax: boolean | 'unknown';
+  payment_method: 'card' | 'cash' | 'unknown';
+  rounding: number;
+  tax: number;
+  taxes_not_included_sum: number;
+  tips: number;
+  items: Array<{
+    name: string;
+    quantity: number;
+    measurement_unit: string;
+    total_price_without_discount: number;
+    unit_price: number;
+    total_price_with_discount: number;
+    discount: number;
+    category: string;
+    item_price_with_tax: boolean | 'True' | 'False';
+  }>;
+  taxs_items: Array<{
+    tax_name: string;
+    percentage: number;
+    tax_from_amount: number;
+    tax: number;
+    total: number;
+    tax_included: boolean | 'True' | 'False';
+  }>;
+}
+
+export default function Home() { // Changed back to a regular function
+  const [acceptedFiles, setAcceptedFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [processedData, setProcessedData] = useState<ReceiptData[]>([]);
+  const [rawApiResponses, setRawApiResponses] = useState<string[]>([]);
+  const [isAuth, setIsAuth] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false); // New state to track if auth check is done
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = await isAuthenticated();
+      setIsAuth(authenticated);
+      setAuthChecked(true); // Mark auth check as done
+      if (!authenticated) {
+        router.push('/login');
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  const handleFilesAccepted = (files: File[]) => {
+    setAcceptedFiles(files);
+  };
+
+  const handleProcessReceipts = async () => {
+    if (acceptedFiles.length === 0) {
+      alert('Please upload at least one receipt image.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setProcessedData([]);
+    setRawApiResponses([]);
+
+    try {
+      const result: { processedData: ReceiptData[]; rawResponses: string[] } = await processReceipts(acceptedFiles);
+      setProcessedData(result.processedData);
+      setRawApiResponses(result.rawResponses);
+      console.log('Processed Receipt Data:', result.processedData);
+      console.log('Raw API Responses:', result.rawResponses);
+    } catch (e: any) {
+      console.error('Error processing receipts:', e);
+      setError(e.message || 'Failed to process receipts.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  if (!authChecked) { // Show loading until authentication check is complete
+    return <div className="flex min-h-screen items-center justify-center text-lg">Loading authentication...</div>;
+  }
+
+  if (!isAuth) { // If not authenticated after check, don't render the app content
+    return null; // Redirection is handled by useEffect
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+      <header className="w-full bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Receipt Analyzer</h1>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+        >
+          Logout
+        </button>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <main className="container mx-auto p-6 space-y-8">
+        <section className="text-center">
+          <h2 className="text-3xl font-semibold mb-4">Upload Your Receipts</h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            Drag and drop your receipt images below, then click 'Process Receipts' to extract detailed information.
+          </p>
+        </section>
+
+        <section className="flex flex-col items-center space-y-6">
+          <div className="w-full max-w-2xl">
+            <FileUpload onFilesAccepted={handleFilesAccepted} />
+          </div>
+          <button
+            onClick={handleProcessReceipts}
+            className="px-8 py-3 bg-blue-600 text-white text-lg font-semibold rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading || acceptedFiles.length === 0}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+            {loading ? 'Processing...' : 'Process Receipts'}
+          </button>
+          {error && <p className="text-red-500 mt-4 text-center">Error: {error}</p>}
+        </section>
+
+        {processedData.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Processed Receipts</h2>
+            <ReceiptTable data={processedData} />
+          </section>
+        )}
+
+        {rawApiResponses.length > 0 && (
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Raw API Responses</h2>
+            <div className="space-y-4">
+              {rawApiResponses.map((response, index) => (
+                <pre key={index} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto text-sm">
+                  {response}
+                </pre>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
