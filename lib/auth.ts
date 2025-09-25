@@ -1,12 +1,9 @@
 'use server';
 
-import { hash, compare } from 'bcryptjs';
-import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-const USERS_FILE_PATH = join(process.cwd(), 'data', 'users.json');
 const SESSION_COOKIE_NAME = 'session';
 
 interface User {

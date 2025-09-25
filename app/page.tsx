@@ -87,9 +87,13 @@ export default function Home() { // Changed back to a regular function
       setRawApiResponses(result.rawResponses);
       console.log('Processed Receipt Data:', result.processedData);
       console.log('Raw API Responses:', result.rawResponses);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error processing receipts:', e);
-      setError(e.message || 'Failed to process receipts.');
+      if (e instanceof Error) {
+        setError(e.message || 'Failed to process receipts.');
+      } else {
+        setError('Failed to process receipts.');
+      }
     } finally {
       setLoading(false);
     }
@@ -123,7 +127,7 @@ export default function Home() { // Changed back to a regular function
         <section className="text-center">
           <h2 className="text-3xl font-semibold mb-4">Upload Your Receipts</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Drag and drop your receipt images below, then click 'Process Receipts' to extract detailed information.
+            Drag and drop your receipt images below, then click &apos;Process Receipts&apos; to extract detailed information.
           </p>
         </section>
 
