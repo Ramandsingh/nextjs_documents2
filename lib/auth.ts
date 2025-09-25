@@ -38,6 +38,7 @@ export async function login(formData: FormData) {
     console.log('Auth: Credentials match default user.');
     const userId = 'default-user-id';
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (cookies() as any).set(SESSION_COOKIE_NAME, userId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -54,17 +55,20 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   console.log('Auth: Logging out.');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (cookies() as any).delete(SESSION_COOKIE_NAME);
   redirect('/login');
 }
 
 export async function isAuthenticated(): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionId = (cookies() as any).get(SESSION_COOKIE_NAME)?.value;
   console.log('Auth: Checking authentication. Session ID:', sessionId);
   return sessionId === 'default-user-id';
 }
 
 export async function getCurrentUser(): Promise<User | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionId = (cookies() as any).get(SESSION_COOKIE_NAME)?.value;
   if (sessionId === 'default-user-id') {
     console.log('Auth: Current user is default user.');
