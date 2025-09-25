@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "ai": "^5.0.52",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",

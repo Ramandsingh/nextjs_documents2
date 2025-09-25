@@ -65,7 +65,7 @@ export async function processReceipts(
   });
 
   const processedData: ReceiptData[] = [];
-  const rawGeminiResponses: string[] = [];
+  const rawAIResponses: string[] = [];
   let fileCount = 0;
 
   for (const file of files) {
@@ -162,7 +162,7 @@ export async function processReceipts(
       console.log('Server Action: OpenAI-compatible API call successful.');
 
       const responseText = response.choices[0]?.message?.content || '';
-      rawGeminiResponses.push(responseText);
+      rawAIResponses.push(responseText);
       console.log('Server Action: API raw response text:', responseText);
 
       const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
@@ -198,5 +198,5 @@ export async function processReceipts(
     }
   }
   console.log(`Server Action: processReceipts finished. Processed ${fileCount} files.`);
-  return { processedData, rawResponses: rawGeminiResponses };
+  return { processedData, rawResponses: rawAIResponses };
 }
