@@ -42,7 +42,7 @@ export async function login(formData: FormData) {
     console.log('Auth: Credentials match default user.');
     const userId = 'default-user-id';
 
-    cookies().set(SESSION_COOKIE_NAME, userId, {
+    (await cookies()).set(SESSION_COOKIE_NAME, userId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -58,18 +58,18 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   console.log('Auth: Logging out.');
-  cookies().delete(SESSION_COOKIE_NAME);
+  (await cookies()).delete(SESSION_COOKIE_NAME);
   redirect('/login');
 }
 
 export async function isAuthenticated(): Promise<boolean> {
-  const sessionId = cookies().get(SESSION_COOKIE_NAME)?.value;
+  const sessionId = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   console.log('Auth: Checking authentication. Session ID:', sessionId);
   return sessionId === 'default-user-id';
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const sessionId = cookies().get(SESSION_COOKIE_NAME)?.value;
+  const sessionId = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   if (sessionId === 'default-user-id') {
     console.log('Auth: Current user is default user.');
     return {

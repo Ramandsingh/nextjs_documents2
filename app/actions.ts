@@ -1,6 +1,7 @@
 'use server';
 
 import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface ReceiptData {
   store_name: string;
@@ -43,29 +44,185 @@ export async function processReceipts(
   files: File[]
 ): Promise<{ processedData: ReceiptData[]; rawResponses: string[] }> {
   console.log('Server Action: processReceipts started.');
+
+  // Get environment variables
+  const AI_PROVIDER = process.env.AI_PROVIDER || 'gemini';
   const KIMI_API_KEY = process.env.KIMI_API_KEY;
   const KIMI_BASE_URL = process.env.KIMI_BASE_URL;
   const KIMI_MODEL = process.env.KIMI_MODEL || 'moonshotai/kimi-k2-instruct';
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
 
-  if (!KIMI_API_KEY) {
-    console.error('Server Action: KIMI_API_KEY is not set.');
-    throw new Error('KIMI_API_KEY is not set.');
-  }
-  if (!KIMI_BASE_URL) {
-    console.error('Server Action: KIMI_BASE_URL is not set.');
-    throw new Error('KIMI_BASE_URL is not set.');
-  }
-  console.log('Server Action: KIMI_API_KEY is set.');
-  console.log(`Server Action: Using Moonshot AI base URL: ${KIMI_BASE_URL}`);
-  console.log(`Server Action: Using Moonshot AI model: ${KIMI_MODEL}`);
+  // Check if we should use demo mode
+  const isGeminiConfigured = GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here';
+  const isMoonshotConfigured = KIMI_API_KEY && KIMI_API_KEY !== 'your_moonshot_api_key_here';
+  const forceDemoMode = process.env.FORCE_DEMO_MODE === 'true';
 
-  const openai = new OpenAI({
+  const isDemoMode = (!isGeminiConfigured && !isMoonshotConfigured) || forceDemoMode;
+
+  console.log(`Server Action: Using AI Provider: ${AI_PROVIDER}`);
+  console.log(`Server Action: Gemini configured: ${isGeminiConfigured}`);
+  console.log(`Server Action: Moonshot configured: ${isMoonshotConfigured}`);
+  console.log(`Server Action: Force demo mode: ${forceDemoMode}`);
+
+  if (isDemoMode) {
+    console.log('Server Action: Running in DEMO MODE - returning sample data.');
+
+    const demoReceipts: ReceiptData[] = [];
+
+    // Return demo data based on number of files uploaded
+    if (files.length >= 1) {
+      // First receipt - Blue Water Grill
+      demoReceipts.push({
+        store_name: 'Blue Water Grill',
+        country: 'Australia',
+        receipt_type: 'Restaurant',
+        address: '10 Santa Barbara Rd, Hope Island, QLD, 4212',
+        datetime: '2025.03.27 14:31:00',
+        currency: 'AUD',
+        sub_total_amount: 23.59,
+        total_price: 25.95,
+        total_discount: 0.00,
+        all_items_price_with_tax: true,
+        payment_method: 'card',
+        rounding: 0.00,
+        tax: 2.36,
+        taxes_not_included_sum: 0.00,
+        tips: 0.00,
+        items: [
+          {
+            name: '$24.95 Lunch Special',
+            quantity: 1.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 24.95,
+            unit_price: 24.95,
+            total_price_with_discount: 24.95,
+            discount: 0.00,
+            category: 'Food',
+            item_price_with_tax: true
+          },
+          {
+            name: 'Chilli Flakes (Serve)',
+            quantity: 1.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 1.00,
+            unit_price: 1.00,
+            total_price_with_discount: 1.00,
+            discount: 0.00,
+            category: 'Food',
+            item_price_with_tax: true
+          }
+        ],
+        taxs_items: [
+          {
+            tax_name: 'GST',
+            percentage: 10.00,
+            tax_from_amount: 23.59,
+            tax: 2.36,
+            total: 25.95,
+            tax_included: true
+          }
+        ]
+      });
+    }
+
+    if (files.length >= 2) {
+      // Second receipt - Coffee Shop
+      demoReceipts.push({
+        store_name: 'The Coffee Bean & Tea Leaf',
+        country: 'United States',
+        receipt_type: 'Cafe',
+        address: '123 Main St, Los Angeles, CA 90210',
+        datetime: '2025.03.28 09:15:00',
+        currency: 'USD',
+        sub_total_amount: 12.45,
+        total_price: 13.58,
+        total_discount: 2.00,
+        all_items_price_with_tax: true,
+        payment_method: 'card',
+        rounding: 0.00,
+        tax: 1.13,
+        taxes_not_included_sum: 0.00,
+        tips: 2.50,
+        items: [
+          {
+            name: 'Large Cappuccino',
+            quantity: 1.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 5.95,
+            unit_price: 5.95,
+            total_price_with_discount: 5.95,
+            discount: 0.00,
+            category: 'Beverages',
+            item_price_with_tax: true
+          },
+          {
+            name: 'Blueberry Muffin',
+            quantity: 1.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 4.50,
+            unit_price: 4.50,
+            total_price_with_discount: 2.50,
+            discount: 2.00,
+            category: 'Food',
+            item_price_with_tax: true
+          },
+          {
+            name: 'Extra Shot Espresso',
+            quantity: 2.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 2.00,
+            unit_price: 1.00,
+            total_price_with_discount: 2.00,
+            discount: 0.00,
+            category: 'Beverages',
+            item_price_with_tax: true
+          }
+        ],
+        taxs_items: [
+          {
+            tax_name: 'Sales Tax',
+            percentage: 9.75,
+            tax_from_amount: 11.45,
+            tax: 1.13,
+            total: 13.58,
+            tax_included: true
+          }
+        ]
+      });
+    }
+
+    const responses = demoReceipts.map((_, index) =>
+      `Demo mode: Sample data generated for receipt ${index + 1}`
+    );
+
+    return {
+      processedData: demoReceipts,
+      rawResponses: responses
+    };
+  }
+
+  // Validate API configurations
+  if (AI_PROVIDER === 'gemini' && !isGeminiConfigured) {
+    console.error('Server Action: GEMINI_API_KEY is not set.');
+    throw new Error('GEMINI_API_KEY is not set.');
+  }
+  if (AI_PROVIDER === 'moonshot' && (!isMoonshotConfigured || !KIMI_BASE_URL)) {
+    console.error('Server Action: Moonshot AI configuration incomplete.');
+    throw new Error('Moonshot AI configuration incomplete.');
+  }
+
+  // Initialize AI clients
+  const gemini = isGeminiConfigured ? new GoogleGenerativeAI(GEMINI_API_KEY!) : null;
+  const openai = isMoonshotConfigured && KIMI_BASE_URL ? new OpenAI({
     baseURL: KIMI_BASE_URL,
     apiKey: KIMI_API_KEY,
-  });
+  }) : null;
+
+  console.log(`Server Action: Using ${AI_PROVIDER.toUpperCase()} API for processing`);
 
   const processedData: ReceiptData[] = [];
-  const rawGeminiResponses: string[] = [];
+  const rawResponses: string[] = [];
   let fileCount = 0;
 
   for (const file of files) {
@@ -83,34 +240,34 @@ export async function processReceipts(
       Output Format: Return the output as a JSON object with the following structure:
 
       {
-          "store_name": string,  -- Exact name of the store as found on the receipt. It\`s not always the bigger text. Find the correct name of the shop/restaurant
+          "store_name": string,  -- Exact name of the store as found on the receipt. It's not always the bigger text. Find the correct name of the shop/restaurant
           "country": string,  -- Define country if available; otherwise, "unknown". Identify country by details on the receipt. Use receipt address or language if explicit country info is lacking.
-          "receipt_type": string,  -- Define receipt type (e.g. Restaurant/Shop/Other) if available; otherwise, "unknown"
+          "receipt_type": string,  -- Define receipt type (e.g. Restaurant/Shop/Pharmacy/Other) if available; otherwise, "unknown"
           "address": string,  -- Full address, if available; otherwise, "unknown"
           "datetime": "YYYY.MM.DD HH:MM:SS",  -- Convert all date formats to this standard
-          "currency": string,  -- Currency code (e.g., "EUR", "USD", "UAH") based on the detected currency symbol. Don\`t put here currency symbol, only code.
+          "currency": string,  -- Currency code (e.g., "EUR", "USD", "UAH") based on the detected currency symbol. Don't put here currency symbol, only code.
           "sub_total_amount": 0.00,  -- This represents the total cost of all items and services on the receipt before any tips, or additional charges are applied. If sub_total_amount is not present on the receipt, set "unknown"
           "total_price": 0.00,  -- The final total amount from the receipt (in the majority of situations this one is bigger then other values + it could be as bold font). The total amount may not always be the largest number; ensure the context is understood from surrounding text.
           "total_discount": 0.00,  -- Total discount applied based on individual item discounts or explicit discount information
-          "all_items_price_with_tax": True/False -- Indicates whether taxes are included in the prices of items. Set to True if taxes are included, False if they are not included. If it cannot be determined, set to "unknown".
-          "payment_method": "card", "cash", or "unknown",  -- Detect payment method based on keywords like "card", "cash", "master card", "visa", e.t. or if missing, use "unknown"
+          "all_items_price_with_tax": true/false -- Indicates whether taxes are included in the prices of items. Set to true if taxes are included, false if they are not included. If it cannot be determined, set to "unknown".
+          "payment_method": "card", "cash", or "unknown",  -- Detect payment method based on keywords like "card", "cash", "master card", "visa", etc. or if missing, use "unknown"
           "rounding": 0.00,  -- If rounding is not specified on the receipt, use 0.0
           "tax": 0.00,  -- If tax is not found or mentioned, use 0.0
-          "taxes_not_included_sum": 0.0 -- Represents the total amount of taxes that are not included in the final total on the receipt. This is applicable in situations where taxes are itemized separately, such as in the United States. If there are no separate taxes, set to 0.0. 
+          "taxes_not_included_sum": 0.0 -- Represents the total amount of taxes that are not included in the final total on the receipt. This is applicable in situations where taxes are itemized separately, such as in the United States. If there are no separate taxes, set to 0.0.
           "tips": 0.00,  -- If tips is not found or mentioned, use 0.0
           "items": [
               {
                   "name": string,  -- Full item name (even if it spans multiple lines)
-                  "quantity": 0.000,  -- Quantity of the item, default 1.0 if it wasn\`t written
+                  "quantity": 0.000,  -- Quantity of the item, default 1.0 if it wasn't written
                   "measurement_unit": string,  -- Use the format "ks", "kg", etc. If not specified, default to "ks"
                   "total_price_without_discount": 0.00, -- price without any discount for a single item. Always extract this value directly from the receipt
                   "unit_price": 0.00,  -- Price per unit without any discount, if available. If not, write here the same value as for total_price_without_discount. Can be negative
                   "total_price_with_discount": 0.00, -- This is the full price for a single item after considering all applicable discounts.
-                  "discount": 0.00,  -- If discount isn\'t listed, assume 0.00
-                  "category": string,  -- Category choose fromlist:Food,Beverages,Personal Care, Beauty & Health,Household Items,Electronics & Appliances,Clothing & Accessories,Home & Furniture,Entertainment & Media,Sports & Outdoors,Car,Baby Products,Stationery,Pet Supplies,Health & Fitness Services,Travel & Transportation,Insurance & Financial Services,Utilities,Gifts & Specialty Items,Services,Other options
-                  "item_price_with_tax": string  -- "True"/"False". Indicating whether the item prices include tax.
+                  "discount": 0.00,  -- If discount isn't listed, assume 0.00
+                  "category": string,  -- Category choose fromlist:Food,Beverages,Personal Care,Beauty & Health,Household Items,Electronics & Appliances,Clothing & Accessories,Home & Furniture,Entertainment & Media,Sports & Outdoors,Car,Baby Products,Stationery,Pet Supplies,Health & Fitness Services,Travel & Transportation,Insurance & Financial Services,Utilities,Gifts & Specialty Items,Services,Other options
+                  "item_price_with_tax": "True"/"False"  -- Indicating whether the item prices include tax.
               }
-          ]
+          ],
           "taxs_items": [
               {
                   "tax_name": string, -- The name of the tax or tax rate.
@@ -118,53 +275,64 @@ export async function processReceipts(
                   "tax_from_amount": 0.00, -- The amount before tax.
                   "tax": 0.00, -- The tax amount itself.
                   "total": 0.00, -- The total amount including tax.
-                  "tax_included": string  -- "True"/"False" indicating whether taxes are included in the item prices. Set to True if there is no separate line for tax on the receipt, or if it explicitly states that taxes are included. Otherwise, set to False
+                  "tax_included": "True"/"False"  -- indicating whether taxes are included in the item prices. Set to True if there is no separate line for tax on the receipt, or if it explicitly states that taxes are included. Otherwise, set to False
               }
           ]
       }
 
-      #Additional Notes:
-      1. If no receipt is detected: Return "Receipt not found."
-      2. Handle various languages (including non-Latin scripts) and keep text in the original script unless translation is explicitly required.
-      3. If information is missing or unclear, return "unknown" or "not available" for that field.
-      4. Extract the full name of each item. Some items may have names split across multiple lines; in this case, concatenate the lines until you encounter a quantity or unit of measurement (e.g., "2ks"), which marks the end of the item name.
-      5. Some receipts could be, for example, from McDonald\`s restaurant, where in receipts under menu name could be written components of this menu. In this case you should extract only menu name.
-      6. The total amount may not always be the largest number; ensure the context is understood from surrounding text.
-      7. Tips and Charity Donations: Extract and sum tips and charity donations, storing the total under the tips field.
-      8. Convert datetime to the "YYYY.MM.DD HH:MM:SS" format, regardless of how they appear on the receipt (e.g., MM/DD/YY, DD-MM-YYYY).
-      9. Handle ambiguous data consistently. If there\'s ambiguity about price, quantity, or any other information, make the best effort to extract it, or return "unknown."
-      10. Be flexible in handling varied receipt layouts, item name formats, and currencies.
-      11. The unit_price/price/total_price/total_price_without_discount for an item can be negative
-      12. After the total amount may be information about taxes, in separate tax items. Define them in taxs_items
+      IMPORTANT: Return ONLY the JSON object, no additional text or formatting.
     `;
     console.log('Server Action: Prompt prepared.');
 
     try {
-      console.log('Server Action: Calling OpenAI-compatible API...');
-      const response = await openai.chat.completions.create({
-        model: KIMI_MODEL,
-        messages: [
+      let responseText = '';
+
+      if (AI_PROVIDER === 'gemini' && gemini) {
+        console.log('Server Action: Calling Gemini API...');
+        const model = gemini.getGenerativeModel({ model: GEMINI_MODEL });
+
+        const result = await model.generateContent([
+          prompt,
           {
-            role: 'user',
-            content: [
-              { type: 'text', text: prompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:${file.type};base64,${base64}`,
-                },
-              },
-            ],
+            inlineData: {
+              data: base64,
+              mimeType: file.type,
+            },
           },
-        ],
-        max_tokens: 2000, // Increased max_tokens for more detailed response
-      });
-      console.log('Server Action: OpenAI-compatible API call successful.');
+        ]);
 
-      const responseText = response.choices[0]?.message?.content || '';
-      rawGeminiResponses.push(responseText);
-      console.log('Server Action: API raw response text:', responseText);
+        responseText = result.response.text();
+        console.log('Server Action: Gemini API call successful.');
 
+      } else if (AI_PROVIDER === 'moonshot' && openai) {
+        console.log('Server Action: Calling Moonshot API...');
+        const response = await openai.chat.completions.create({
+          model: KIMI_MODEL,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${file.type};base64,${base64}`,
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 2000,
+        });
+
+        responseText = response.choices[0]?.message?.content || '';
+        console.log('Server Action: Moonshot API call successful.');
+      }
+
+      rawResponses.push(responseText);
+      console.log('Server Action: API raw response preview:', responseText.substring(0, 200) + '...');
+
+      // Try to parse JSON from response
       const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
       let parsedData: ReceiptData | null = null;
 
@@ -183,6 +351,18 @@ export async function processReceipts(
           console.log('Server Action: Successfully parsed entire response as JSON.');
         } catch (jsonError) {
           console.error('Server Action: Failed to parse direct response as JSON:', jsonError);
+          // Try to extract JSON from response that might have extra text
+          const jsonStart = responseText.indexOf('{');
+          const jsonEnd = responseText.lastIndexOf('}');
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            try {
+              const extractedJson = responseText.substring(jsonStart, jsonEnd + 1);
+              parsedData = JSON.parse(extractedJson);
+              console.log('Server Action: Successfully parsed extracted JSON.');
+            } catch (extractError) {
+              console.error('Server Action: Failed to parse extracted JSON:', extractError);
+            }
+          }
         }
       }
 
@@ -194,9 +374,67 @@ export async function processReceipts(
       }
 
     } catch (error) {
-      console.error('Server Action: Error processing receipt with OpenAI-compatible API:', error);
+      console.error(`Server Action: Error processing receipt with ${AI_PROVIDER.toUpperCase()} API:`, error);
+
+      // Log detailed error information for debugging
+      if (error instanceof Error) {
+        console.error(`Server Action: Error message: ${error.message}`);
+        console.error(`Server Action: Error name: ${error.name}`);
+        console.error(`Server Action: Error stack: ${error.stack}`);
+
+        // Check for specific Gemini model errors
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          console.error(`Server Action: Model ${GEMINI_MODEL} not found or not accessible`);
+        }
+        if (error.message.includes('403') || error.message.includes('forbidden')) {
+          console.error(`Server Action: API key may be invalid or lacking permissions`);
+        }
+      }
+
+      // Check if it's a quota error
+      if (error instanceof Error && error.message.includes('quota')) {
+        console.log('Server Action: Quota exceeded, falling back to demo mode for this file');
+
+        // Add a demo receipt based on the file name
+        const demoReceipt: ReceiptData = {
+          store_name: file.name.includes('pharmacy') || file.name.includes('Pharmacy') ? 'Local Pharmacy' :
+                     file.name.includes('coffee') || file.name.includes('Coffee') ? 'Coffee Shop' :
+                     file.name.includes('restaurant') || file.name.includes('Restaurant') ? 'Restaurant' :
+                     'Demo Store (Quota Exceeded)',
+          country: 'unknown',
+          receipt_type: file.name.includes('pharmacy') || file.name.includes('Pharmacy') ? 'Pharmacy' :
+                       file.name.includes('coffee') || file.name.includes('Coffee') ? 'Cafe' : 'Shop',
+          address: 'Address not available (API quota exceeded)',
+          datetime: new Date().toISOString().replace('T', ' ').slice(0, 19).replace(/-/g, '.'),
+          currency: 'USD',
+          sub_total_amount: 'unknown',
+          total_price: 0.00,
+          total_discount: 0.00,
+          all_items_price_with_tax: 'unknown',
+          payment_method: 'unknown',
+          rounding: 0.00,
+          tax: 0.00,
+          taxes_not_included_sum: 0.00,
+          tips: 0.00,
+          items: [{
+            name: 'Items not available (API quota exceeded)',
+            quantity: 1.0,
+            measurement_unit: 'ks',
+            total_price_without_discount: 0.00,
+            unit_price: 0.00,
+            total_price_with_discount: 0.00,
+            discount: 0.00,
+            category: 'Other',
+            item_price_with_tax: 'False'
+          }],
+          taxs_items: []
+        };
+
+        processedData.push(demoReceipt);
+        rawResponses.push(`API quota exceeded for file: ${file.name}. Please upgrade your Gemini API plan or wait for quota reset.`);
+      }
     }
   }
   console.log(`Server Action: processReceipts finished. Processed ${fileCount} files.`);
-  return { processedData, rawResponses: rawGeminiResponses };
+  return { processedData, rawResponses };
 }
