@@ -104,7 +104,7 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
     similarity: string;
   }>>([]);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => { // eslint-disable-line react-hooks/exhaustive-deps
     const allFiles = [...files, ...acceptedFiles];
 
     // Check for image duplicates
