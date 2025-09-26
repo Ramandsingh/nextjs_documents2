@@ -335,7 +335,6 @@ export async function processReceipts(
       console.log('Server Action: API raw response preview:', responseText.substring(0, 200) + '...');
 
       // Try to parse JSON from response
-      const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
       let parsedData: ReceiptData | null = null;
 
       if (responseText) {

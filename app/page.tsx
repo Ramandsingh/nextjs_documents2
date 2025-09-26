@@ -48,7 +48,6 @@ export default function Home() { // Changed back to a regular function
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [processedData, setProcessedData] = useState<ReceiptData[]>([]);
-  const [rawApiResponses, setRawApiResponses] = useState<string[]>([]);
   const [isAuth, setIsAuth] = useState(false);
   const [authChecked, setAuthChecked] = useState(false); // New state to track if auth check is done
   const router = useRouter();

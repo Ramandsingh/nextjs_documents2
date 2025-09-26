@@ -153,7 +153,7 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
     setDuplicateWarnings(duplicateResults);
     setFiles(allFiles);
     onFilesAccepted(allFiles);
-  }, [onFilesAccepted, files]);
+  }, [onFilesAccepted, files, calculateAdvancedSimilarity]);
 
   // Advanced similarity calculation using multiple features
   const calculateAdvancedSimilarity = (features1: ImageFeatures, features2: ImageFeatures): {isDuplicate: boolean, confidence: number} => {
