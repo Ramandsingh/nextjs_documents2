@@ -1,26 +1,23 @@
 # Receipt Analyzer App
 
-## Goal
-
 This web application allows users to upload multiple receipt images simultaneously. It leverages the Moonshot AI API to analyze each receipt, extract key data, and display the results in a structured, interactive table.
 
 ## Features
 
-- User authentication with a default username and password.
-- Multi-file drag-and-drop interface for receipt image uploads.
-- Integration with Moonshot AI API for intelligent receipt data extraction based on a detailed prompt.
-- Dynamic display of extracted receipt data in a structured, Excel-friendly table format with banding and outlines.
-- Improved UI layout and styling for better user experience.
-- Robust error handling for API failures and malformed receipts.
-- Optimized for deployment on Vercel.
+-   **User Authentication:** Secure login with a default username and password.
+-   **Multi-File Upload:** Drag-and-drop interface for easy receipt image uploads.
+-   **AI-Powered Extraction:** Integrates with Moonshot AI for intelligent data extraction.
+-   **Interactive Data Table:** Displays extracted data in a structured, Excel-friendly format.
+-   **Robust Error Handling:** Manages API failures and malformed receipt data gracefully.
+-   **Optimized for Vercel:** Ready for easy deployment.
 
 ## Technology Stack
 
-- **Frontend:** Next.js (App Router), React, Shadcn UI
-- **Backend:** OpenAI client library (for Moonshot AI), Next.js Server Actions
-- **AI Model:** Moonshot AI (configurable via environment variables)
-- **Styling:** Tailwind CSS
-- **Hosting:** Vercel
+-   **Framework:** [Next.js](https://nextjs.org/) (App Router)
+-   **UI:** [React](https://react.dev/), [Shadcn UI](https://ui.shadcn.com/)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **AI Integration:** [OpenAI SDK](https://github.com/openai/openai-node) (for Moonshot AI compatibility)
+-   **Deployment:** [Vercel](https://vercel.com/)
 
 ## Getting Started
 
@@ -28,40 +25,33 @@ Follow these steps to set up and run the project locally.
 
 ### Prerequisites
 
-- Node.js (v18 or later)
-- npm (or your preferred package manager like pnpm, yarn)
+-   Node.js (v18 or later)
+-   npm, pnpm, or yarn
 
-### Installation
+### 1. Installation
 
-1.  Clone the repository:
+First, clone the repository and install the dependencies:
 
-    ```bash
-    git clone <repository-url>
-    cd nextjs_documents
-    ```
-
-2.  Install dependencies:
-
-    ```bash
-    npm install
-    ```
-
-### Environment Variables
-
-Create a `.env.local` file in the root of the project and add your API keys and configuration:
-
-```
-KIMI_API_KEY=your_moonshot_api_key_here
-KIMI_BASE_URL=https://api.moonshot.ai/v1
-KIMI_MODEL=your_moonshot_vision_model_name_here # e.g., moonshotai/kimi-k2-instruct (ensure it supports vision)
-
-DEFAULT_USERNAME=your_default_username
-DEFAULT_PASSWORD=your_default_password
+```bash
+git clone <repository-url>
+cd nextjs_documents
+npm install
 ```
 
-Replace `your_moonshot_api_key_here`, `your_moonshot_vision_model_name_here`, `your_default_username`, and `your_default_password` with your actual values.
+### 2. Environment Variables
 
-### Running Locally
+Create a `.env.local` file in the root of your project and add the following variables:
+
+```env
+KIMI_API_KEY="your_moonshot_api_key_here"
+KIMI_BASE_URL="https://api.moonshot.ai/v1"
+KIMI_MODEL="your_moonshot_vision_model_name_here" # e.g., moonshot-v1-32k
+
+DEFAULT_USERNAME="your_default_username"
+DEFAULT_PASSWORD="your_default_password"
+```
+
+### 3. Running the Development Server
 
 To start the development server:
 
@@ -69,36 +59,42 @@ To start the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000/login](http://localhost:3000/login) in your browser to log in and then access the application.
+Open [http://localhost:3000/login](http://localhost:3000/login) in your browser to log in and start using the application.
 
-## Usage
+## Available Scripts
 
-1.  Navigate to the login page (`/login`).
-2.  Log in with your configured default username and password.
-3.  On the main page, drag and drop one or more receipt images into the designated upload area.
-4.  Click 'Process Receipts'.
-5.  The application will process the images using Moonshot AI, and the extracted data will be displayed in a table in an Excel-friendly format.
+-   `npm run dev`: Starts the development server with Turbopack.
+-   `npm run build`: Builds the application for production.
+-   `npm run start`: Starts the production server.
+-   `npm run lint`: Runs the ESLint code linter.
 
-## Detailed AI Prompt
+## Deployment
 
-**Task:** Accurately extract structured information from receipt images and return it in a standardized JSON format. Ensure high accuracy even when receipts vary in format, language (including non-Latin scripts), and layout. Handle challenges like text noise, multiple lines for item names, and potential gaps in information.
+This project is optimized for deployment on [Vercel](https://vercel.com/).
 
-**Receipts:** May be in various languages (Latin and non-Latin scripts), in diverse formats, and may contain noise like logos, faded text, or watermarks.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyour-repo%2Fnextjs_documents&env=KIMI_API_KEY,KIMI_BASE_URL,KIMI_MODEL,DEFAULT_USERNAME,DEFAULT_PASSWORD&envDescription=API%20keys%20and%20credentials%20for%20the%20Receipt%20Analyzer%20App)
+
+Click the button above to deploy this project to Vercel. You will be prompted to enter the environment variables during the setup process.
+
+<details>
+<summary>AI Prompt Details</summary>
+
+**Task:** Accurately extract structured information from receipt images and return it in a standardized JSON format.
 
 **Output Format:** Return the output as a JSON object with the following structure:
 
 ```json
 {
-    "store_name": string,
-    "country": string,
-    "receipt_type": string,
-    "address": string,
+    "store_name": "string",
+    "country": "string",
+    "receipt_type": "string",
+    "address": "string",
     "datetime": "YYYY.MM.DD HH:MM:SS",
-    "currency": string,
+    "currency": "string",
     "sub_total_amount": 0.00,
     "total_price": 0.00,
     "total_discount": 0.00,
-    "all_items_price_with_tax": true/false,
+    "all_items_price_with_tax": true,
     "payment_method": "card" | "cash" | "unknown",
     "rounding": 0.00,
     "tax": 0.00,
@@ -106,20 +102,20 @@ Open [http://localhost:3000/login](http://localhost:3000/login) in your browser 
     "tips": 0.00,
     "items": [
         {
-            "name": string,
+            "name": "string",
             "quantity": 0.000,
-            "measurement_unit": string,
+            "measurement_unit": "string",
             "total_price_without_discount": 0.00,
             "unit_price": 0.00,
             "total_price_with_discount": 0.00,
             "discount": 0.00,
-            "category": string,
+            "category": "string",
             "item_price_with_tax": "True" | "False"
         }
     ],
     "taxs_items": [
         {
-            "tax_name": string,
+            "tax_name": "string",
             "percentage": 0.00,
             "tax_from_amount": 0.00,
             "tax": 0.00,
@@ -130,16 +126,15 @@ Open [http://localhost:3000/login](http://localhost:3000/login) in your browser 
 }
 ```
 
-**Additional Notes:**
-1. If no receipt is detected: Return "Receipt not found."
-2. Handle various languages (including non-Latin scripts) and keep text in the original script unless translation is explicitly required.
-3. If information is missing or unclear, return "unknown" or "not available" for that field.
-4. Extract the full name of each item. Some items may have names split across multiple lines; in this case, concatenate the lines until you encounter a quantity or unit of measurement (e.g., "2ks"), which marks the end of the item name.
-5. Some receipts could be, for example, from McDonald`s restaurant, where in receipts under menu name could be written components of this menu. In this case you should extract only menu name.
-6. The total amount may not always be the largest number; ensure the context is understood from surrounding text.
-7. Tips and Charity Donations: Extract and sum tips and charity donations, storing the total under the tips field.
-8. Convert datetime to the "YYYY.MM.DD HH:MM:SS" format, regardless of how they appear on the receipt (e.g., MM/DD/YY, DD-MM-YYYY).
-9. Handle ambiguous data consistently. If there's ambiguity about price, quantity, or any other information, make the best effort to extract it, or return "unknown."
-10. Be flexible in handling varied receipt layouts, item name formats, and currencies.
-11. The unit_price/price/total_price/total_price_without_discount for an item can be negative
-12. After the total amount may be information about taxes, in separate tax items. Define them in taxs_items
+**Key Instructions:**
+1.  If no receipt is detected, return "Receipt not found."
+2.  Handle multiple languages and scripts.
+3.  Use "unknown" or "not available" for missing information.
+4.  Concatenate multi-line item names.
+5.  Extract only the main menu item name, not its components (e.g., for a McDonald's meal).
+6.  Sum all tips and charity donations into the `tips` field.
+7.  Standardize `datetime` to `YYYY.MM.DD HH:MM:SS`.
+8.  Item prices can be negative (e.g., for returns).
+9.  Define tax details in the `taxs_items` array.
+
+</details>

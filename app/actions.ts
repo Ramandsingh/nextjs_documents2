@@ -302,10 +302,11 @@ export async function processReceipts(
           },
         ]);
 
-        responseText = result.response.text();
+        const response = result.response;
+        responseText = response.text();
         console.log('Server Action: Gemini API call successful.');
 
-      } else if (AI_PROVIDER === 'moonshot' && openai) {
+      } else if (AI_PROVIDER === 'kimi' && openai) {
         console.log('Server Action: Calling Moonshot API...');
         const response = await openai.chat.completions.create({
           model: KIMI_MODEL,
@@ -337,34 +338,40 @@ export async function processReceipts(
       const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
       let parsedData: ReceiptData | null = null;
 
-      if (jsonMatch && jsonMatch[1]) {
-        console.log('Server Action: Found JSON block, attempting to parse...');
-        try {
-          parsedData = JSON.parse(jsonMatch[1]);
-          console.log('Server Action: Successfully parsed JSON from block.');
-        } catch (jsonError) {
-          console.error('Server Action: Failed to parse JSON from API response block:', jsonError);
-        }
-      } else {
-        console.log('Server Action: No JSON block found, attempting to parse entire response as JSON...');
-        try {
-          parsedData = JSON.parse(responseText);
-          console.log('Server Action: Successfully parsed entire response as JSON.');
-        } catch (jsonError) {
-          console.error('Server Action: Failed to parse direct response as JSON:', jsonError);
-          // Try to extract JSON from response that might have extra text
-          const jsonStart = responseText.indexOf('{');
-          const jsonEnd = responseText.lastIndexOf('}');
-          if (jsonStart !== -1 && jsonEnd !== -1) {
-            try {
-              const extractedJson = responseText.substring(jsonStart, jsonEnd + 1);
-              parsedData = JSON.parse(extractedJson);
-              console.log('Server Action: Successfully parsed extracted JSON.');
-            } catch (extractError) {
-              console.error('Server Action: Failed to parse extracted JSON:', extractError);
+      if (responseText) {
+        const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+
+        if (jsonMatch && jsonMatch[1]) {
+          console.log('Server Action: Found JSON block, attempting to parse...');
+          try {
+            parsedData = JSON.parse(jsonMatch[1]);
+            console.log('Server Action: Successfully parsed JSON from block.');
+          } catch (jsonError) {
+            console.error('Server Action: Failed to parse JSON from API response block:', jsonError);
+          }
+        } else {
+          console.log('Server Action: No JSON block found, attempting to parse entire response as JSON...');
+          try {
+            parsedData = JSON.parse(responseText);
+            console.log('Server Action: Successfully parsed entire response as JSON.');
+          } catch (jsonError) {
+            console.error('Server Action: Failed to parse direct response as JSON:', jsonError);
+            // Try to extract JSON from response that might have extra text
+            const jsonStart = responseText.indexOf('{');
+            const jsonEnd = responseText.lastIndexOf('}');
+            if (jsonStart !== -1 && jsonEnd !== -1) {
+              try {
+                const extractedJson = responseText.substring(jsonStart, jsonEnd + 1);
+                parsedData = JSON.parse(extractedJson);
+                console.log('Server Action: Successfully parsed extracted JSON.');
+              } catch (extractError) {
+                console.error('Server Action: Failed to parse extracted JSON:', extractError);
+              }
             }
           }
         }
+      } else {
+        console.log('Server Action: API response is empty.');
       }
 
       if (parsedData) {
