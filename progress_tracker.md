@@ -10,7 +10,6 @@ Build a Vercel-hosted web application that allows users to upload multiple recei
     - [x] Tailwind CSS configured (`tailwind.config.ts`, `app/globals.css`).
     - [x] Shadcn UI manually configured (`components.json`, `lib/utils.ts`, `clsx`, `tailwind-merge` installed).
     - [x] Vercel AI SDK installed.
-    - [x] `@google/generative-ai` installed to resolve module not found error.
     - [x] `tailwindcss-animate` installed to resolve module not found error.
 - [x] **API Integration:** Configure Gemini API key as an environment variable (GOOGLE_GEMINI_API_KEY).
     - *Note: User needs to manually add `GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here` to `.env.local`.*

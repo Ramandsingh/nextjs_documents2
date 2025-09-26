@@ -87,9 +87,13 @@ export default function Home() { // Changed back to a regular function
       setRawApiResponses(result.rawResponses);
       console.log('Processed Receipt Data:', result.processedData);
       console.log('Raw API Responses:', result.rawResponses);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error processing receipts:', e);
-      setError(e.message || 'Failed to process receipts.');
+      if (e instanceof Error) {
+        setError(e.message || 'Failed to process receipts.');
+      } else {
+        setError('Failed to process receipts.');
+      }
     } finally {
       setLoading(false);
     }
