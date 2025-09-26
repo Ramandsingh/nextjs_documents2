@@ -1004,7 +1004,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                     {Object.entries(categoryBreakdown)
                       .sort(([,a], [,b]) => b - a)
                       .slice(0, 6)
-                      .reduce((acc, [category, amount], index) => {
+                      .reduce((acc: { elements: React.ReactElement[], offset: number }, [category, amount], index) => {
                         const percentage = (amount / totalAmount) * 100;
                         const strokeDasharray = `${percentage * 2.51} ${251.2 - percentage * 2.51}`;
                         const rotation = acc.offset;
@@ -1027,7 +1027,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
 
                         acc.offset += percentage;
                         return acc;
-                      }, { elements: [], offset: 0 }).elements}
+                      }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -1129,7 +1129,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                 <div className="relative w-32 h-32">
                   <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
                     {Object.entries(paymentMethods)
-                      .reduce((acc, [method, count], index) => {
+                      .reduce((acc: { elements: React.ReactElement[], offset: number }, [method, count], index) => {
                         const percentage = (count / data.length) * 100;
                         const strokeDasharray = `${percentage * 2.51} ${251.2 - percentage * 2.51}`;
                         const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'];
@@ -1151,7 +1151,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
 
                         acc.offset += percentage;
                         return acc;
-                      }, { elements: [], offset: 0 }).elements}
+                      }, { elements: [] as React.ReactElement[], offset: 0 }).elements}
                   </svg>
                 </div>
               </div>

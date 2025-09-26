@@ -3,6 +3,15 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 
+interface ImageFeatures {
+  hash: string;
+  colorHistogram: number[];
+  edgeHash: string;
+  brightness: number;
+  fileName: string;
+  fileSize: number;
+}
+
 // Enhanced function to calculate more detailed image features
 const calculateImageFeatures = async (file: File): Promise<{
   hash: string;
@@ -147,7 +156,7 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
   }, [onFilesAccepted, files]);
 
   // Advanced similarity calculation using multiple features
-  const calculateAdvancedSimilarity = (features1: any, features2: any): {isDuplicate: boolean, confidence: number} => {
+  const calculateAdvancedSimilarity = (features1: ImageFeatures, features2: ImageFeatures): {isDuplicate: boolean, confidence: number} => {
     // 1. Exact file check (same name and size)
     if (features1.fileName === features2.fileName && features1.fileSize === features2.fileSize) {
       return { isDuplicate: true, confidence: 100 };
@@ -200,8 +209,8 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
     if (hist1.length !== hist2.length) return 0;
 
     let totalDiff = 0;
-    let total1 = hist1.reduce((sum, val) => sum + val, 0);
-    let total2 = hist2.reduce((sum, val) => sum + val, 0);
+    const total1 = hist1.reduce((sum, val) => sum + val, 0);
+    const total2 = hist2.reduce((sum, val) => sum + val, 0);
 
     for (let i = 0; i < hist1.length; i++) {
       const norm1 = hist1[i] / total1;
