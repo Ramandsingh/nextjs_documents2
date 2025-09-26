@@ -77,14 +77,10 @@ export default function Home() { // Changed back to a regular function
     setLoading(true);
     setError(null);
     setProcessedData([]);
-    setRawApiResponses([]);
 
     try {
       const result: { processedData: ReceiptData[]; rawResponses: string[] } = await processReceipts(acceptedFiles);
       setProcessedData(result.processedData);
-      setRawApiResponses(result.rawResponses);
-      console.log('Processed Receipt Data:', result.processedData);
-      console.log('Raw API Responses:', result.rawResponses);
     } catch (e: unknown) {
       console.error('Error processing receipts:', e);
       if (e instanceof Error) {

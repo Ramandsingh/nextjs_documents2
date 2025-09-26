@@ -1,7 +1,4 @@
 import * as React from "react";
-import {
-  TableRow,
-} from "@/components/ui/table";
 
 interface Item {
   name: string;
@@ -569,8 +566,6 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
   // Calculate comprehensive summary data
   const totalAmount = data.reduce((sum, receipt) => sum + receipt.total_price, 0);
   const currencies = [...new Set(data.map(receipt => receipt.currency))];
-  const countries = [...new Set(data.map(receipt => receipt.country))];
-  const totalItems = data.reduce((sum, receipt) => sum + (receipt.items?.length || 0), 0);
 
   // HR/Business Analytics
   const totalTax = data.reduce((sum, receipt) => sum + (receipt.tax || 0), 0);
@@ -1075,7 +1070,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                 {Object.entries(vendorBreakdown)
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 8)
-                  .map(([vendor, amount], index) => {
+                  .map(([vendor, amount]) => {
                     const percentage = (amount / totalAmount) * 100;
                     const maxAmount = Math.max(...Object.values(vendorBreakdown));
                     const barWidth = (amount / maxAmount) * 100;
