@@ -2,6 +2,7 @@
 
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { cookies } from 'next/headers';
 
 interface ReceiptData {
   store_name: string;
@@ -437,4 +438,14 @@ export async function processReceipts(
   }
   console.log(`Server Action: processReceipts finished. Processed ${fileCount} files.`);
   return { processedData, rawResponses };
+}
+
+// Authentication server actions
+export async function checkAuthentication(): Promise<boolean> {
+  const sessionId = (await cookies()).get('session')?.value;
+  return sessionId === 'default-user-id';
+}
+
+export async function performLogout(): Promise<void> {
+  (await cookies()).delete('session');
 }

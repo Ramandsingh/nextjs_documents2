@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { FileUpload } from '@/components/file-upload';
-import { processReceipts } from '@/app/actions';
+import { processReceipts, checkAuthentication, performLogout } from '@/app/actions';
 import { ReceiptTable } from '@/components/receipt-table';
-import { isAuthenticated, logout } from '@/lib/auth';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 
 interface ReceiptData {
   store_name: string;
@@ -56,9 +55,9 @@ export default function Home() { // Changed back to a regular function
 
   useEffect(() => {
     const checkAuth = async () => {
-      const authenticated = await isAuthenticated();
+      const authenticated = await checkAuthentication();
       setIsAuth(authenticated);
-      setAuthChecked(true); // Mark auth check as done
+      setAuthChecked(true);
       if (!authenticated) {
         router.push('/login');
       }
@@ -100,7 +99,8 @@ export default function Home() { // Changed back to a regular function
   };
 
   const handleLogout = async () => {
-    await logout();
+    await performLogout();
+    router.push('/login');
   };
 
   if (!authChecked) { // Show loading until authentication check is complete
