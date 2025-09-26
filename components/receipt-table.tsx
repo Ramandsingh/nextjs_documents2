@@ -1007,7 +1007,6 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                       .reduce((acc: { elements: React.ReactElement[], offset: number }, [category, amount], index) => {
                         const percentage = (amount / totalAmount) * 100;
                         const strokeDasharray = `${percentage * 2.51} ${251.2 - percentage * 2.51}`;
-                        const rotation = acc.offset;
                         const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#6366f1'];
 
                         acc.elements.push(
@@ -1043,7 +1042,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                 {Object.entries(categoryBreakdown)
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 6)
-                  .map(([category, amount], index) => {
+                  .map(([category, amount]) => {
                     const percentage = ((amount / totalAmount) * 100);
                     const colors = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#6366f1'];
                     return (
@@ -1051,7 +1050,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
                         <div className="flex items-center">
                           <div
                             className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: colors[index] }}
+                            style={{ backgroundColor: colors[0] }}
                           />
                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-32">{category}</span>
                         </div>
@@ -1305,7 +1304,6 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
             {data.map((receipt, index) => {
               // Check if this receipt is flagged as duplicate
               const isDuplicate = duplicates.some(dup => dup.indices.includes(index));
-              const duplicateInfo = duplicates.find(dup => dup.indices.includes(index));
 
               return (
                 <div key={index} className={`bg-white dark:bg-slate-800 rounded-2xl p-4 border hover:shadow-lg transition-shadow ${
