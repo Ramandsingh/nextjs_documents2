@@ -332,7 +332,7 @@ export async function processReceipts(
       }
 
       rawResponses.push(responseText);
-      console.log('Server Action: API raw response preview:', responseText.substring(0, 200) + '...');
+      console.log('Server Action: Full API raw response:', responseText);
 
       // Try to parse JSON from response
       let parsedData: ReceiptData | null = null;
@@ -381,7 +381,7 @@ export async function processReceipts(
       }
 
     } catch (error) {
-      console.error(`Server Action: Error processing receipt with ${AI_PROVIDER.toUpperCase()} API:`, error);
+      console.error(`Server Action: Error processing receipt with ${AI_PROVIDER.toUpperCase()} API:`, JSON.stringify(error, null, 2));
 
       // Log detailed error information for debugging
       if (error instanceof Error) {
