@@ -44,15 +44,12 @@ interface ReceiptData {
 export async function processReceipts(
   files: File[]
 ): Promise<{ processedData: ReceiptData[]; rawResponses: string[] }> {
-  console.log('--- GEMINI CLI DEBUG: processReceipts v4 START ---');
   console.log('Server Action: processReceipts started.');
 
   // Get environment variables
   const AI_PROVIDER = process.env.AI_PROVIDER || 'gemini';
   const KIMI_API_KEY = process.env.KIMI_API_KEY;
   const KIMI_BASE_URL = process.env.KIMI_BASE_URL;
-  console.log(`Server Action: KIMI_BASE_URL loaded: ${KIMI_BASE_URL}`);
-  console.log(`Server Action: KIMI_API_KEY loaded: ${KIMI_API_KEY ? `...${KIMI_API_KEY.slice(-4)}` : 'Not Set'}`);
   const KIMI_MODEL = process.env.KIMI_MODEL || 'moonshotai/kimi-k2-instruct';
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
@@ -306,7 +303,6 @@ export async function processReceipts(
         ]);
 
         const response = result.response;
-        console.log('Server Action: Full Gemini API response object:', JSON.stringify(response, null, 2));
         responseText = response.text();
         console.log('Server Action: Gemini API call successful.');
 
@@ -331,13 +327,12 @@ export async function processReceipts(
           max_tokens: 2000,
         });
 
-        console.log('Server Action: Full Moonshot API response object:', JSON.stringify(response, null, 2));
         responseText = response.choices[0]?.message?.content || '';
         console.log('Server Action: Moonshot API call successful.');
       }
 
       rawResponses.push(responseText);
-      console.log('Server Action: Full API raw response:', responseText);
+      console.log('Server Action: API raw response preview:', responseText.substring(0, 200) + '...');
 
       // Try to parse JSON from response
       let parsedData: ReceiptData | null = null;
@@ -386,7 +381,7 @@ export async function processReceipts(
       }
 
     } catch (error) {
-      console.error(`Server Action: Error processing receipt with ${AI_PROVIDER.toUpperCase()} API:`, JSON.stringify(error, null, 2));
+      console.error(`Server Action: Error processing receipt with ${AI_PROVIDER.toUpperCase()} API:`, error);
 
       // Log detailed error information for debugging
       if (error instanceof Error) {
