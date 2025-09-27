@@ -51,6 +51,8 @@ export async function processReceipts(
   const AI_PROVIDER = process.env.AI_PROVIDER || 'gemini';
   const KIMI_API_KEY = process.env.KIMI_API_KEY;
   const KIMI_BASE_URL = process.env.KIMI_BASE_URL;
+  console.log(`Server Action: KIMI_BASE_URL loaded: ${KIMI_BASE_URL}`);
+  console.log(`Server Action: KIMI_API_KEY loaded: ${KIMI_API_KEY ? `...${KIMI_API_KEY.slice(-4)}` : 'Not Set'}`);
   const KIMI_MODEL = process.env.KIMI_MODEL || 'moonshotai/kimi-k2-instruct';
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-pro';
