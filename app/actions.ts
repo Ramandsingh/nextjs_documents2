@@ -303,6 +303,7 @@ export async function processReceipts(
         ]);
 
         const response = result.response;
+        console.log('Server Action: Full Gemini API response object:', JSON.stringify(response, null, 2));
         responseText = response.text();
         console.log('Server Action: Gemini API call successful.');
 
@@ -327,6 +328,7 @@ export async function processReceipts(
           max_tokens: 2000,
         });
 
+        console.log('Server Action: Full Moonshot API response object:', JSON.stringify(response, null, 2));
         responseText = response.choices[0]?.message?.content || '';
         console.log('Server Action: Moonshot API call successful.');
       }
