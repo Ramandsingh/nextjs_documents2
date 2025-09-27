@@ -44,6 +44,7 @@ interface ReceiptData {
 export async function processReceipts(
   files: File[]
 ): Promise<{ processedData: ReceiptData[]; rawResponses: string[] }> {
+  console.log('--- GEMINI CLI DEBUG: processReceipts v4 START ---');
   console.log('Server Action: processReceipts started.');
 
   // Get environment variables
