@@ -96,6 +96,72 @@ interface FileUploadProps {
   onFilesAccepted: (files: File[]) => void;
 }
 
+// Advanced similarity calculation using multiple features
+const calculateAdvancedSimilarity = (features1: ImageFeatures, features2: ImageFeatures): {isDuplicate: boolean, confidence: number} => {
+  // 1. Exact file check (same name and size)
+  if (features1.fileName === features2.fileName && features1.fileSize === features2.fileSize) {
+    return { isDuplicate: true, confidence: 100 };
+  }
+
+  // 2. Perceptual hash similarity
+  const hashSimilarity = calculateHashSimilarity(features1.hash, features2.hash);
+
+  // 3. Edge pattern similarity
+  const edgeSimilarity = calculateHashSimilarity(features1.edgeHash, features2.edgeHash);
+
+  // 4. Color histogram similarity
+  const colorSimilarity = calculateColorHistogramSimilarity(features1.colorHistogram, features2.colorHistogram);
+
+  // 5. Brightness similarity
+  const brightnessDiff = Math.abs(features1.brightness - features2.brightness);
+  const brightnessSimilarity = Math.max(0, 100 - brightnessDiff);
+
+  // Weighted combination - all must be high for duplicate detection
+  const combinedScore = (
+    hashSimilarity * 0.4 +        // 40% - structural similarity
+    edgeSimilarity * 0.3 +        // 30% - edge patterns
+    colorSimilarity * 0.2 +       // 20% - color distribution
+    brightnessSimilarity * 0.1    // 10% - overall brightness
+  );
+
+  // Very strict threshold - only flag if nearly identical
+  // AND multiple features agree (not just one high score)
+  const isDuplicate = combinedScore > 98 &&
+                     hashSimilarity > 95 &&
+                     edgeSimilarity > 90;
+
+  return { isDuplicate, confidence: combinedScore };
+};
+
+// Basic hash similarity
+const calculateHashSimilarity = (hash1: string, hash2: string): number => {
+  if (hash1.length !== hash2.length) return 0;
+
+  let matches = 0;
+  for (let i = 0; i < hash1.length; i++) {
+    if (hash1[i] === hash2[i]) matches++;
+  }
+
+  return (matches / hash1.length) * 100;
+};
+
+// Color histogram similarity
+const calculateColorHistogramSimilarity = (hist1: number[], hist2: number[]): number => {
+  if (hist1.length !== hist2.length) return 0;
+
+  let totalDiff = 0;
+  const total1 = hist1.reduce((sum, val) => sum + val, 0);
+  const total2 = hist2.reduce((sum, val) => sum + val, 0);
+
+  for (let i = 0; i < hist1.length; i++) {
+    const norm1 = hist1[i] / total1;
+    const norm2 = hist2[i] / total2;
+    totalDiff += Math.abs(norm1 - norm2);
+  }
+
+  return Math.max(0, 100 - (totalDiff * 50));
+};
+
 export function FileUpload({ onFilesAccepted }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [duplicateWarnings, setDuplicateWarnings] = useState<Array<{
@@ -104,7 +170,7 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
     similarity: string;
   }>>([]);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => { // eslint-disable-line react-hooks/exhaustive-deps
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const allFiles = [...files, ...acceptedFiles];
 
     // Check for image duplicates
@@ -154,72 +220,6 @@ export function FileUpload({ onFilesAccepted }: FileUploadProps) {
     setFiles(allFiles);
     onFilesAccepted(allFiles);
   }, [onFilesAccepted, files]);
-
-  // Advanced similarity calculation using multiple features
-  const calculateAdvancedSimilarity = (features1: ImageFeatures, features2: ImageFeatures): {isDuplicate: boolean, confidence: number} => {
-    // 1. Exact file check (same name and size)
-    if (features1.fileName === features2.fileName && features1.fileSize === features2.fileSize) {
-      return { isDuplicate: true, confidence: 100 };
-    }
-
-    // 2. Perceptual hash similarity
-    const hashSimilarity = calculateHashSimilarity(features1.hash, features2.hash);
-
-    // 3. Edge pattern similarity
-    const edgeSimilarity = calculateHashSimilarity(features1.edgeHash, features2.edgeHash);
-
-    // 4. Color histogram similarity
-    const colorSimilarity = calculateColorHistogramSimilarity(features1.colorHistogram, features2.colorHistogram);
-
-    // 5. Brightness similarity
-    const brightnessDiff = Math.abs(features1.brightness - features2.brightness);
-    const brightnessSimilarity = Math.max(0, 100 - brightnessDiff);
-
-    // Weighted combination - all must be high for duplicate detection
-    const combinedScore = (
-      hashSimilarity * 0.4 +        // 40% - structural similarity
-      edgeSimilarity * 0.3 +        // 30% - edge patterns
-      colorSimilarity * 0.2 +       // 20% - color distribution
-      brightnessSimilarity * 0.1    // 10% - overall brightness
-    );
-
-    // Very strict threshold - only flag if nearly identical
-    // AND multiple features agree (not just one high score)
-    const isDuplicate = combinedScore > 98 &&
-                       hashSimilarity > 95 &&
-                       edgeSimilarity > 90;
-
-    return { isDuplicate, confidence: combinedScore };
-  };
-
-  // Basic hash similarity
-  const calculateHashSimilarity = (hash1: string, hash2: string): number => {
-    if (hash1.length !== hash2.length) return 0;
-
-    let matches = 0;
-    for (let i = 0; i < hash1.length; i++) {
-      if (hash1[i] === hash2[i]) matches++;
-    }
-
-    return (matches / hash1.length) * 100;
-  };
-
-  // Color histogram similarity
-  const calculateColorHistogramSimilarity = (hist1: number[], hist2: number[]): number => {
-    if (hist1.length !== hist2.length) return 0;
-
-    let totalDiff = 0;
-    const total1 = hist1.reduce((sum, val) => sum + val, 0);
-    const total2 = hist2.reduce((sum, val) => sum + val, 0);
-
-    for (let i = 0; i < hist1.length; i++) {
-      const norm1 = hist1[i] / total1;
-      const norm2 = hist2[i] / total2;
-      totalDiff += Math.abs(norm1 - norm2);
-    }
-
-    return Math.max(0, 100 - (totalDiff * 50));
-  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 

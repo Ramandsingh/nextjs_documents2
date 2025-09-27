@@ -754,7 +754,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
   if (data.length === 1) {
     return (
       <div className="p-6">
-        <ReceiptCard receipt={data[0]} index={0} />
+        <ReceiptCard receipt={data[0]} />
       </div>
     );
   }
@@ -1292,12 +1292,11 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
           {/* Receipt Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {data.map((receipt, idx) => {
-              const index = idx;
               // Check if this receipt is flagged as duplicate
-              const isDuplicate = duplicates.some(dup => dup.indices.includes(index));
+              const isDuplicate = duplicates.some(dup => dup.indices.includes(idx));
 
               return (
-                <div key={index} className={`bg-white dark:bg-slate-800 rounded-2xl p-4 border hover:shadow-lg transition-shadow ${
+                <div key={idx} className={`bg-white dark:bg-slate-800 rounded-2xl p-4 border hover:shadow-lg transition-shadow ${
                   isDuplicate
                     ? 'border-amber-300 dark:border-amber-600 bg-amber-50/30 dark:bg-amber-900/10'
                     : 'border-slate-200 dark:border-slate-700'
@@ -1343,7 +1342,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
       {/* Individual Receipt View */}
       {!showSummary && (
         <div>
-          <ReceiptCard receipt={data[safeActiveTab]} index={safeActiveTab} />
+          <ReceiptCard receipt={data[safeActiveTab]} />
         </div>
       )}
     </div>
@@ -1351,7 +1350,7 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
 }
 
 // Separate component for individual receipt card
-function ReceiptCard({ receipt, index }: { receipt: ReceiptData; index: number }) {
+function ReceiptCard({ receipt }: { receipt: ReceiptData }) {
   return (
     <div className="bg-gradient-to-r from-white to-slate-50/50 dark:from-slate-800 dark:to-slate-900/50 rounded-3xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
           {/* Receipt Header */}
