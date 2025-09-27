@@ -1291,7 +1291,8 @@ export function ReceiptTable({ data }: ReceiptTableProps) {
 
           {/* Receipt Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {data.map((receipt, index) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+            {data.map((receipt, idx) => {
+              const index = idx;
               // Check if this receipt is flagged as duplicate
               const isDuplicate = duplicates.some(dup => dup.indices.includes(index));
 
